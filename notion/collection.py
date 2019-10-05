@@ -386,32 +386,28 @@ class CollectionRowBlock(PageBlock):
         )
 
     def _convert_notion_to_python(self, val, prop):
-
-        if prop["type"] in ["title", "text"]:
-            val = notion_to_markdown(val) if val else ""
+        if prop["type"] in {"title", "text"}:
+            return notion_to_markdown(val) if val else ""
         if prop["type"] in ["number"]:
             if val is not None:
                 val = val[0][0]
-                if "." in val:
-                    val = float(val)
-                else:
-                    val = int(val)
-        if prop["type"] in ["select"]:
-            val = val[0][0] if val else None
-        if prop["type"] in ["multi_select"]:
-            val = [v.strip() for v in val[0][0].split(",")] if val else []
-        if prop["type"] in ["person"]:
-            val = (
+                return float(val) if "." in val else int(val)
+        if prop["type"] == "select":
+            return val[0][0] if val else None
+        if prop["type"] == "multi_select":
+            return [v.strip() for v in val[0][0].split(",")] if val else []
+        if prop["type"] == "person":
+            return (
                 [self._client.get_user(item[1][0][1]) for item in val if item[0] == "‣"]
                 if val
                 else []
             )
-        if prop["type"] in ["email", "phone_number", "url"]:
-            val = val[0][0] if val else ""
-        if prop["type"] in ["date"]:
-            val = NotionDate.from_notion(val)
-        if prop["type"] in ["file"]:
-            val = (
+        if prop["type"] in {"email", "phone_number", "url"}:
+            return val[0][0] if val else ""
+        if prop["type"] == "date":
+            return NotionDate.from_notion(val)
+        if prop["type"] == "file":
+            return (
                 [
                     add_signed_prefix_as_needed(item[1][0][1], client=self._client)
                     for item in val
@@ -420,10 +416,10 @@ class CollectionRowBlock(PageBlock):
                 if val
                 else []
             )
-        if prop["type"] in ["checkbox"]:
-            val = val[0][0] == "Yes" if val else False
-        if prop["type"] in ["relation"]:
-            val = (
+        if prop["type"] == "checkbox":
+            return val[0][0] == "Yes" if val else False
+        if prop["type"] == "relation":
+            return (
                 [
                     self._client.get_block(item[1][0][1])
                     for item in val
@@ -432,14 +428,12 @@ class CollectionRowBlock(PageBlock):
                 if val
                 else []
             )
-        if prop["type"] in ["created_time", "last_edited_time"]:
+        if prop["type"] in {"created_time", "last_edited_time"}:
             val = self.get(prop["type"])
-            val = datetime.utcfromtimestamp(val / 1000)
-        if prop["type"] in ["created_by", "last_edited_by"]:
+            return datetime.utcfromtimestamp(val / 1000)
+        if prop["type"] in {"created_by", "last_edited_by"}:
             val = self.get(prop["type"])
-            val = self._client.get_user(val)
-
-        return val
+            return self._client.get_user(val)
 
     def get_all_properties(self):
         allprops = {}
