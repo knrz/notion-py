@@ -461,8 +461,7 @@ class CollectionRowBlock(PageBlock):
         self.set(path, val)
 
     def _convert_python_to_notion(self, val, prop, identifier="<unknown>"):
-
-        if prop["type"] in ["title", "text"]:
+        if prop["type"] in {"title", "text"}:
             if not val:
                 val = ""
             if not isinstance(val, str):
@@ -470,7 +469,7 @@ class CollectionRowBlock(PageBlock):
                     "Value passed to property '{}' must be a string.".format(identifier)
                 )
             val = markdown_to_notion(val)
-        if prop["type"] in ["number"]:
+        elif prop["type"] == "number":
             if val is not None:
                 if not isinstance(val, float) and not isinstance(val, int):
                     raise TypeError(
@@ -479,7 +478,7 @@ class CollectionRowBlock(PageBlock):
                         )
                     )
                 val = [[str(val)]]
-        if prop["type"] in ["select"]:
+        elif prop["type"] == "select":
             if not val:
                 val = None
             else:
@@ -492,7 +491,7 @@ class CollectionRowBlock(PageBlock):
                         )
                     )
                 val = [[val]]
-        if prop["type"] in ["multi_select"]:
+        elif prop["type"] == "multi_select":
             if not val:
                 val = []
             valid_options = [p["value"].lower() for p in prop["options"]]
@@ -506,7 +505,7 @@ class CollectionRowBlock(PageBlock):
                         )
                     )
             val = [[",".join(val)]]
-        if prop["type"] in ["person"]:
+        elif prop["type"] == "person":
             userlist = []
             if not isinstance(val, list):
                 val = [val]
@@ -514,16 +513,16 @@ class CollectionRowBlock(PageBlock):
                 user_id = user if isinstance(user, str) else user.id
                 userlist += [["‣", [["u", user_id]]], [","]]
             val = userlist[:-1]
-        if prop["type"] in ["email", "phone_number", "url"]:
+        elif prop["type"] in {"email", "phone_number", "url"}:
             val = [[val, [["a", val]]]]
-        if prop["type"] in ["date"]:
+        elif prop["type"] == "date":
             if isinstance(val, date) or isinstance(val, datetime):
                 val = NotionDate(val)
             if isinstance(val, NotionDate):
                 val = val.to_notion()
             else:
                 val = []
-        if prop["type"] in ["file"]:
+        elif prop["type"] == "file":
             filelist = []
             if not isinstance(val, list):
                 val = [val]
@@ -532,13 +531,13 @@ class CollectionRowBlock(PageBlock):
                 filename = url.split("/")[-1]
                 filelist += [[filename, [["a", url]]], [","]]
             val = filelist[:-1]
-        if prop["type"] in ["checkbox"]:
+        elif prop["type"] == "checkbox":
             if not isinstance(val, bool):
                 raise TypeError(
                     "Value passed to property '{}' must be a bool.".format(identifier)
                 )
             val = [["Yes" if val else "No"]]
-        if prop["type"] in ["relation"]:
+        elif prop["type"] == "relation":
             pagelist = []
             if not isinstance(val, list):
                 val = [val]
@@ -547,10 +546,10 @@ class CollectionRowBlock(PageBlock):
                     page = self._client.get_block(page)
                 pagelist += [["‣", [["p", page.id]]], [","]]
             val = pagelist[:-1]
-        if prop["type"] in ["created_time", "last_edited_time"]:
+        elif prop["type"] in {"created_time", "last_edited_time"}:
             val = int(val.timestamp() * 1000)
             return prop["type"], val
-        if prop["type"] in ["created_by", "last_edited_by"]:
+        elif prop["type"] in {"created_by", "last_edited_by"}:
             val = val if isinstance(val, str) else val.id
             return prop["type"], val
 
